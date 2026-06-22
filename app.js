@@ -1,5 +1,42 @@
 const todayKey = new Date().toISOString().slice(0, 10);
-const storeKey = "weight-checkin-site-v6";
+const storeKey = "weight-checkin-site-v8";
+
+const calorieFoods = [
+  { keys: ["米饭", "白米饭"], name: "米饭", kcal: 116, unit: "g" },
+  { keys: ["糙米饭"], name: "糙米饭", kcal: 111, unit: "g" },
+  { keys: ["面条", "面"], name: "面条", kcal: 137, unit: "g" },
+  { keys: ["馒头"], name: "馒头", kcal: 223, unit: "g" },
+  { keys: ["红薯", "地瓜"], name: "红薯", kcal: 86, unit: "g" },
+  { keys: ["玉米"], name: "玉米", kcal: 112, unit: "g" },
+  { keys: ["燕麦"], name: "燕麦", kcal: 389, unit: "g" },
+  { keys: ["鸡蛋", "蛋"], name: "鸡蛋", kcal: 70, unit: "个" },
+  { keys: ["鸡胸肉"], name: "鸡胸肉", kcal: 165, unit: "g" },
+  { keys: ["牛肉"], name: "牛肉", kcal: 250, unit: "g" },
+  { keys: ["鱼"], name: "鱼肉", kcal: 120, unit: "g" },
+  { keys: ["虾"], name: "虾", kcal: 99, unit: "g" },
+  { keys: ["豆腐"], name: "豆腐", kcal: 84, unit: "g" },
+  { keys: ["牛奶"], name: "牛奶", kcal: 60, unit: "ml" },
+  { keys: ["酸奶"], name: "酸奶", kcal: 72, unit: "g" },
+  { keys: ["苹果"], name: "苹果", kcal: 52, unit: "g" },
+  { keys: ["香蕉"], name: "香蕉", kcal: 89, unit: "g" },
+  { keys: ["橙子", "橙"], name: "橙子", kcal: 47, unit: "g" },
+  { keys: ["西兰花"], name: "西兰花", kcal: 34, unit: "g" },
+  { keys: ["生菜"], name: "生菜", kcal: 15, unit: "g" },
+  { keys: ["黄瓜"], name: "黄瓜", kcal: 16, unit: "g" },
+  { keys: ["番茄", "西红柿"], name: "番茄", kcal: 18, unit: "g" },
+  { keys: ["奶茶"], name: "奶茶", kcal: 350, unit: "杯" },
+  { keys: ["拿铁"], name: "拿铁", kcal: 150, unit: "杯" },
+  { keys: ["美式"], name: "美式咖啡", kcal: 10, unit: "杯" },
+  { keys: ["火锅"], name: "火锅", kcal: 800, unit: "餐" },
+  { keys: ["沙拉"], name: "沙拉", kcal: 180, unit: "份" },
+  { keys: ["三明治"], name: "三明治", kcal: 300, unit: "个" },
+  { keys: ["汉堡"], name: "汉堡", kcal: 520, unit: "个" },
+  { keys: ["薯条"], name: "薯条", kcal: 312, unit: "g" },
+  { keys: ["蛋糕"], name: "蛋糕", kcal: 350, unit: "块" },
+  { keys: ["巧克力"], name: "巧克力", kcal: 546, unit: "g" }
+];
+
+let lastCalorieEstimate = null;
 
 const defaults = {
   settings: {
@@ -15,7 +52,13 @@ const defaults = {
       training: 3,
       diary: 1
     },
-    redeemedTotal: 0
+    redeemedTotal: 0,
+    cycle: {
+      lastStart: "",
+      cycleLength: 28,
+      periodLength: 5,
+      reminder: true
+    }
   },
   videos: [
     {
@@ -131,7 +174,17 @@ Object.assign(el, {
   kindSummaryText: document.querySelector("#kindSummaryText"),
   foodDiaryForm: document.querySelector("#foodDiaryForm"),
   foodDiaryInput: document.querySelector("#foodDiaryInput"),
-  foodDiaryList: document.querySelector("#foodDiaryList")
+  foodDiaryList: document.querySelector("#foodDiaryList"),
+  calorieForm: document.querySelector("#calorieForm"),
+  calorieFoodInput: document.querySelector("#calorieFoodInput"),
+  calorieResult: document.querySelector("#calorieResult"),
+  saveCalorieBtn: document.querySelector("#saveCalorieBtn"),
+  periodStartInput: document.querySelector("#periodStartInput"),
+  cycleLengthInput: document.querySelector("#cycleLengthInput"),
+  periodLengthInput: document.querySelector("#periodLengthInput"),
+  cycleReminderInput: document.querySelector("#cycleReminderInput"),
+  cycleStatusText: document.querySelector("#cycleStatusText"),
+  cycleHintText: document.querySelector("#cycleHintText")
 });
 
 function loadData() {
@@ -236,6 +289,10 @@ function render() {
   el.mealDinnerCheck.checked = today.mealChecks.dinner;
   el.mealSnackCheck.checked = today.mealChecks.snack;
   el.trendRangeInput.value = data.settings.trendRange;
+  el.periodStartInput.value = data.settings.cycle.lastStart;
+  el.cycleLengthInput.value = data.settings.cycle.cycleLength;
+  el.periodLengthInput.value = data.settings.cycle.periodLength;
+  el.cycleReminderInput.checked = data.settings.cycle.reminder;
 
   const waterProgress = Math.min(today.water / data.settings.waterGoal, 1);
   el.waterRing.style.strokeDashoffset = `${314 - 314 * waterProgress}`;
@@ -252,6 +309,7 @@ function render() {
   renderTrainings();
   renderRewardFund();
   renderFoodDiary();
+  renderCycleStatus();
 }
 
 function renderVideos() {
@@ -285,11 +343,12 @@ function renderHistory() {
     const water = day.water || 0;
     const exercise = day.exercise || 0;
     const weight = day.weight ? formatWeight(day.weight) : "未记录体重";
+    const cycleTag = getCycleTag(key);
 
     return `
-      <div class="history-row">
+      <div class="history-row ${cycleTag ? "cycle-marked" : ""}">
         <strong>${label}</strong>
-        <span>${weight} · ${day.bodyStatus || "未记录状态"} · 喝水 ${water} 杯 · 运动 ${exercise} 分钟</span>
+        <span>${weight} · ${cycleTag ? `${cycleTag} · ` : ""}${day.bodyStatus || "未记录状态"} · 喝水 ${water} 杯 · 运动 ${exercise} 分钟</span>
       </div>
     `;
   });
@@ -339,7 +398,7 @@ function renderTrend() {
           <div class="weight-entry">
             <div>
             <strong>${formatWeight(day.weight)}</strong>
-            <span>${label}</span>
+            <span>${label}${getCycleTag(date) ? ` · ${getCycleTag(date)}` : ""}</span>
           </div>
         </div>
       `;
@@ -384,7 +443,15 @@ function buildWeightChart(points, min, max) {
     })
     .join("");
 
-  return `${grid.join("")}<path class="chart-line" d="${path}"></path>${dots}${labels}`;
+  const cycleDots = points
+    .filter((point) => getCycleTag(point.date))
+    .map((point, index) => {
+      const originalIndex = points.indexOf(point);
+      return `<circle class="cycle-dot" cx="${xFor(originalIndex).toFixed(1)}" cy="${yFor(point.weight).toFixed(1)}" r="11"><title>${formatDate(point.date)} ${getCycleTag(point.date)}</title></circle>`;
+    })
+    .join("");
+
+  return `${grid.join("")}<path class="chart-line" d="${path}"></path>${cycleDots}${dots}${labels}`;
 }
 
 function renderMealPlan() {
@@ -442,6 +509,12 @@ function renderFoodDiary() {
       </div>
     `)
     .join("");
+}
+
+function renderCycleStatus() {
+  const status = getCycleStatus(todayKey);
+  el.cycleStatusText.textContent = status.title;
+  el.cycleHintText.textContent = status.hint;
 }
 
 function renderTrainings() {
@@ -561,6 +634,57 @@ function formatDate(dateKey) {
   return new Intl.DateTimeFormat("zh-CN", { month: "numeric", day: "numeric", weekday: "short" }).format(new Date(year, month - 1, day));
 }
 
+function getCycleStatus(dateKey) {
+  const cycle = data.settings.cycle;
+  if (!cycle.lastStart) {
+    return {
+      title: "未设置",
+      hint: "设置最近一次开始日期后，趋势里的经期体重会自动标记。"
+    };
+  }
+
+  const day = daysBetween(cycle.lastStart, dateKey);
+  const cycleLength = Number(cycle.cycleLength) || 28;
+  const periodLength = Number(cycle.periodLength) || 5;
+  const offset = ((day % cycleLength) + cycleLength) % cycleLength;
+  const daysToNext = offset === 0 ? cycleLength : cycleLength - offset;
+
+  if (offset < periodLength) {
+    return {
+      title: `经期第 ${offset + 1} 天`,
+      hint: "这几天体重上浮、食欲变化或水肿都很常见，先照顾舒服。"
+    };
+  }
+  if (data.settings.cycle.reminder && daysToNext <= 3) {
+    return {
+      title: `${daysToNext} 天后可能来经期`,
+      hint: "经期前体重和情绪有波动很正常，可以提前安排轻一点的训练。"
+    };
+  }
+  return {
+    title: `距下次约 ${daysToNext} 天`,
+    hint: "经期附近的体重记录会在趋势里自动标记。"
+  };
+}
+
+function getCycleTag(dateKey) {
+  const status = getCycleStatus(dateKey);
+  if (status.title.startsWith("经期第")) return "经期";
+  if (status.title.includes("可能来经期")) return "经前";
+  return "";
+}
+
+function daysBetween(startKey, endKey) {
+  const start = parseDateKey(startKey);
+  const end = parseDateKey(endKey);
+  return Math.floor((end - start) / 86400000);
+}
+
+function parseDateKey(dateKey) {
+  const [year, month, day] = dateKey.split("-").map(Number);
+  return new Date(year, month - 1, day);
+}
+
 function createMealPlan(rawIngredients, rawCraving, style, calorie) {
   const ingredients = rawIngredients
     .split(/[，,、\n]/)
@@ -613,6 +737,77 @@ function findFirst(items, keywords) {
   return items.find((item) => keywords.some((keyword) => item.includes(keyword)));
 }
 
+function estimateCalories(input) {
+  const text = input.trim();
+  const food = calorieFoods.find((item) => item.keys.some((key) => text.includes(key)));
+  const fallback = food || inferFood(text);
+  const amount = parseFoodAmount(text, fallback.unit);
+  const calories = fallback.unit === "g" || fallback.unit === "ml"
+    ? Math.round((amount / 100) * fallback.kcal)
+    : Math.round(amount * fallback.kcal);
+
+  return {
+    input: text,
+    name: fallback.name,
+    amount,
+    unit: fallback.unit,
+    kcal: calories,
+    matched: Boolean(food),
+    perUnit: fallback.kcal
+  };
+}
+
+function inferFood(text) {
+  if (/(饭|面|粉|粥|包|饼|主食)/.test(text)) return { name: "主食类", kcal: 150, unit: "g" };
+  if (/(肉|鸡|牛|鱼|虾|蛋|豆腐)/.test(text)) return { name: "蛋白质类", kcal: 160, unit: "g" };
+  if (/(菜|蔬菜|青菜|瓜|番茄)/.test(text)) return { name: "蔬菜类", kcal: 30, unit: "g" };
+  if (/(水果|苹果|香蕉|梨|桃|橙)/.test(text)) return { name: "水果类", kcal: 60, unit: "g" };
+  if (/(奶茶|饮料|咖啡|拿铁)/.test(text)) return { name: "饮品类", kcal: 250, unit: "杯" };
+  if (/(蛋糕|甜品|饼干|巧克力)/.test(text)) return { name: "甜品类", kcal: 350, unit: "份" };
+  return { name: "混合食物", kcal: 220, unit: "份" };
+}
+
+function parseFoodAmount(text, unit) {
+  const numberMatch = text.match(/(\d+(?:\.\d+)?)/);
+  const number = numberMatch ? Number(numberMatch[1]) : 0;
+  const portion = getPortionMultiplier(text);
+
+  if (/(g|克)/i.test(text)) return number || 100;
+  if (/(ml|毫升)/i.test(text)) return number || 250;
+  if (/(斤)/.test(text)) return (number || 1) * 500;
+  if (/(两)/.test(text)) return (number || 1) * 50;
+  if (/(碗)/.test(text)) return (number || 1) * portion * (unit === "g" ? 180 : 1);
+  if (/(盘)/.test(text)) return (number || 1) * portion * (unit === "g" ? 250 : 1);
+  if (/(小份|大份|份)/.test(text)) return (number || 1) * portion * (unit === "g" ? 180 : 1);
+  if (/(个|颗|只|杯|碗|份|块|片|餐)/.test(text)) return number || 1;
+
+  if (unit === "g") return (number || 1) * portion * 100;
+  if (unit === "ml") return (number || 1) * portion * 250;
+  return number || 1;
+}
+
+function getPortionMultiplier(text) {
+  if (/(半|半份|半碗|半个|半杯)/.test(text)) return 0.5;
+  if (/(一小|小份|少量|一点)/.test(text)) return 0.65;
+  if (/(大份|一大|很多|加量)/.test(text)) return 1.5;
+  return 1;
+}
+
+function renderCalorieResult(result) {
+  const amountText = result.unit === "g" || result.unit === "ml"
+    ? `约 ${Math.round(result.amount)}${result.unit}`
+    : `${result.amount}${result.unit}`;
+  const confidence = result.matched ? "匹配到常见食物" : "按类别粗略估算";
+  el.calorieResult.innerHTML = `
+    <div class="calorie-card">
+      <strong>${escapeHtml(result.name)} · 约 ${result.kcal} 千卡</strong>
+      <span>${escapeHtml(amountText)} · ${confidence}</span>
+      <p>这是日常记录估算值，不等同于精确营养数据库。</p>
+    </div>
+  `;
+  el.saveCalorieBtn.disabled = false;
+}
+
 function showToast(message, alsoNotify = false) {
   el.toast.textContent = message;
   el.toast.classList.add("show");
@@ -662,6 +857,30 @@ function bindEvents() {
   el.appetiteInput.addEventListener("change", () => updateToday({ appetite: el.appetiteInput.value }));
   el.privacyModeInput.addEventListener("change", () => {
     data.settings.privacyMode = el.privacyModeInput.checked;
+    saveData();
+    render();
+  });
+
+  el.periodStartInput.addEventListener("change", () => {
+    data.settings.cycle.lastStart = el.periodStartInput.value;
+    saveData();
+    render();
+  });
+
+  el.cycleLengthInput.addEventListener("change", () => {
+    data.settings.cycle.cycleLength = clampNumber(el.cycleLengthInput.value, 20, 45, 28);
+    saveData();
+    render();
+  });
+
+  el.periodLengthInput.addEventListener("change", () => {
+    data.settings.cycle.periodLength = clampNumber(el.periodLengthInput.value, 2, 10, 5);
+    saveData();
+    render();
+  });
+
+  el.cycleReminderInput.addEventListener("change", () => {
+    data.settings.cycle.reminder = el.cycleReminderInput.checked;
     saveData();
     render();
   });
@@ -898,6 +1117,27 @@ function bindEvents() {
     if (!button) return;
     const today = getToday();
     updateToday({ foodDiary: today.foodDiary.filter((item) => item.id !== button.dataset.foodDelete) });
+  });
+
+  el.calorieForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    lastCalorieEstimate = estimateCalories(el.calorieFoodInput.value);
+    renderCalorieResult(lastCalorieEstimate);
+  });
+
+  el.saveCalorieBtn.addEventListener("click", () => {
+    if (!lastCalorieEstimate) return;
+    const today = getToday();
+    updateToday({
+      foodDiary: [
+        ...today.foodDiary,
+        {
+          id: createId(),
+          text: `${lastCalorieEstimate.input}，约 ${lastCalorieEstimate.kcal} 千卡`
+        }
+      ]
+    });
+    showToast("已记入饮食日记。");
   });
 }
 

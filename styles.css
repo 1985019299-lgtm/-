@@ -171,7 +171,8 @@ section.page-view:not(.dashboard-grid) {
 }
 
 .reward-panel,
-.food-diary-panel {
+.food-diary-panel,
+.cycle-panel {
   grid-column: span 4;
 }
 
@@ -206,7 +207,8 @@ section.page-view:not(.dashboard-grid) {
 }
 
 .meal-builder-panel,
-.meal-result-panel {
+.meal-result-panel,
+.calorie-panel {
   grid-column: span 6;
 }
 
@@ -608,6 +610,12 @@ textarea:focus {
   stroke-width: 3;
 }
 
+.cycle-dot {
+  fill: rgba(255, 122, 159, 0.18);
+  stroke: #ff7a9f;
+  stroke-width: 2;
+}
+
 .chart-label {
   fill: var(--muted);
   font-size: 13px;
@@ -695,6 +703,62 @@ textarea:focus {
 .meal-tip {
   border-left: 4px solid var(--blue);
   background: var(--blue-soft);
+}
+
+.calorie-form {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.calorie-form button {
+  border: 0;
+  border-radius: 8px;
+  color: #fff;
+  background: var(--mint-dark);
+  padding: 0 14px;
+  font-weight: 800;
+}
+
+.calorie-result {
+  margin-bottom: 10px;
+}
+
+.calorie-card {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--blue-soft);
+  padding: 12px;
+}
+
+.calorie-card strong {
+  display: block;
+  color: var(--mint-dark);
+  font-size: 20px;
+  margin-bottom: 6px;
+}
+
+.calorie-card span {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.calorie-card p {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+  margin-top: 8px;
+}
+
+.calorie-save-button {
+  width: 100%;
+}
+
+.calorie-save-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .reward-badge {
@@ -787,6 +851,28 @@ textarea:focus {
   color: var(--muted);
   font-size: 12px;
   line-height: 1.45;
+}
+
+.cycle-settings {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.cycle-settings label {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.cycle-toggle-row {
+  margin-bottom: 0;
+}
+
+.cycle-marked {
+  border-color: rgba(255, 122, 159, 0.45);
+  background: linear-gradient(90deg, rgba(255, 122, 159, 0.12), #fbfdff);
 }
 
 .food-form {
@@ -980,6 +1066,7 @@ textarea:focus {
   .history-panel,
   .reward-panel,
   .food-diary-panel,
+  .cycle-panel,
   .notice-panel,
   .training-main-panel,
   .training-summary-panel,
@@ -988,6 +1075,7 @@ textarea:focus {
   .entries-panel,
   .meal-builder-panel,
   .meal-result-panel,
+  .calorie-panel,
   .meal-check-panel {
     grid-column: span 6;
   }
@@ -1022,6 +1110,7 @@ textarea:focus {
   .notice-panel,
   .reward-panel,
   .food-diary-panel,
+  .cycle-panel,
   .training-main-panel,
   .training-summary-panel,
   .trend-panel-full,
@@ -1029,6 +1118,7 @@ textarea:focus {
   .entries-panel,
   .meal-builder-panel,
   .meal-result-panel,
+  .calorie-panel,
   .meal-check-panel {
     grid-column: span 12;
   }
@@ -1050,6 +1140,10 @@ textarea:focus {
   }
 
   .food-form {
+    grid-template-columns: 1fr;
+  }
+
+  .calorie-form {
     grid-template-columns: 1fr;
   }
 

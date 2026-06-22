@@ -1,4 +1,4 @@
-const cacheName = "happy-checkin-v3";
+const cacheName = "happy-checkin-v5";
 const assets = [
   "./",
   "./index.html",

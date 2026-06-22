@@ -156,8 +156,36 @@
           <div class="reward-meta" id="rewardMetaText"></div>
           <p class="hint" id="kindSummaryText">完成小目标就给自己存一点奖励基金。</p>
         </article>
+
+        <article class="panel cycle-panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">经期提醒</p>
+              <h2 id="cycleStatusText">未设置</h2>
+            </div>
           </div>
-          <p class="hint" id="kindSummaryText">今天照顾自己一点点，就已经很棒。</p>
+          <div class="cycle-settings">
+            <label>
+              最近一次开始
+              <input id="periodStartInput" type="date" />
+            </label>
+            <label>
+              周期天数
+              <input id="cycleLengthInput" type="number" min="20" max="45" step="1" />
+            </label>
+            <label>
+              经期天数
+              <input id="periodLengthInput" type="number" min="2" max="10" step="1" />
+            </label>
+          </div>
+          <label class="privacy-row cycle-toggle-row">
+            <span>开启经期前提醒</span>
+            <label class="switch">
+              <input id="cycleReminderInput" type="checkbox" />
+              <span></span>
+            </label>
+          </label>
+          <p class="hint" id="cycleHintText">经期附近体重波动会在趋势里标记。</p>
         </article>
 
         <article class="panel food-diary-panel">
@@ -416,6 +444,23 @@
             </div>
           </div>
           <div class="meal-plan" id="mealPlanOutput"></div>
+        </article>
+
+        <article class="panel calorie-panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">热量估算</p>
+              <h2>输入食物名就能算</h2>
+            </div>
+          </div>
+          <form class="calorie-form" id="calorieForm">
+            <input id="calorieFoodInput" type="text" placeholder="例如：一碗米饭、半碗面、鸡蛋 2个、奶茶 1杯" required />
+            <button type="submit">估算</button>
+          </form>
+          <div class="calorie-result" id="calorieResult">
+            <p class="hint">不知道几克也没关系，输入“一碗、一小份、一个、一杯”就能粗略估算。</p>
+          </div>
+          <button class="text-button calorie-save-button" id="saveCalorieBtn" type="button" disabled>记入饮食日记</button>
         </article>
 
         <article class="panel meal-check-panel">
