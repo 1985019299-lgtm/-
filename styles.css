@@ -170,6 +170,11 @@ section.page-view:not(.dashboard-grid) {
   grid-column: span 5;
 }
 
+.reward-panel,
+.food-diary-panel {
+  grid-column: span 4;
+}
+
 .notice-panel {
   grid-column: span 3;
   display: flex;
@@ -239,6 +244,13 @@ section.page-view:not(.dashboard-grid) {
   margin-bottom: 14px;
 }
 
+.status-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
 label span,
 .settings-line label {
   color: var(--muted);
@@ -290,6 +302,24 @@ textarea:focus {
 .habit-row span {
   color: var(--ink);
   font-size: 15px;
+}
+
+.privacy-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--blue-soft);
+  padding: 12px;
+  margin-bottom: 14px;
+}
+
+.privacy-row > span {
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 800;
 }
 
 .note-box {
@@ -667,6 +697,144 @@ textarea:focus {
   background: var(--blue-soft);
 }
 
+.reward-badge {
+  min-width: 86px;
+  border-radius: 999px;
+  background: var(--blue-soft);
+  color: var(--mint-dark);
+  padding: 8px 12px;
+  text-align: center;
+  font-weight: 900;
+}
+
+.reward-list {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.reward-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfdff;
+  padding: 10px 12px;
+}
+
+.reward-item.done {
+  background: var(--blue-soft);
+}
+
+.reward-item span {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.reward-item.done span,
+.reward-item.done strong {
+  color: var(--mint-dark);
+}
+
+.reward-settings {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+}
+
+.reward-settings summary {
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.reward-inputs {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.reward-inputs label {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.redeem-form {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.redeem-form button {
+  border: 0;
+  border-radius: 8px;
+  color: #fff;
+  background: var(--mint-dark);
+  padding: 0 14px;
+  font-weight: 800;
+}
+
+.reward-meta {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.food-form {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.food-form button {
+  border: 0;
+  border-radius: 8px;
+  color: #fff;
+  background: var(--mint-dark);
+  padding: 0 14px;
+  font-weight: 800;
+}
+
+.food-list {
+  display: grid;
+  gap: 8px;
+}
+
+.food-item {
+  display: grid;
+  grid-template-columns: 1fr 34px;
+  gap: 10px;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfdff;
+  padding: 10px 12px;
+}
+
+.food-item span {
+  overflow-wrap: anywhere;
+}
+
+.food-item button {
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--line);
+  background: #fff;
+  border-radius: 8px;
+  color: var(--mint-dark);
+  font-weight: 900;
+}
+
 .training-count {
   min-width: 64px;
   border-radius: 999px;
@@ -810,6 +978,8 @@ textarea:focus {
   .exercise-panel,
   .video-panel,
   .history-panel,
+  .reward-panel,
+  .food-diary-panel,
   .notice-panel,
   .training-main-panel,
   .training-summary-panel,
@@ -850,6 +1020,8 @@ textarea:focus {
   .video-panel,
   .history-panel,
   .notice-panel,
+  .reward-panel,
+  .food-diary-panel,
   .training-main-panel,
   .training-summary-panel,
   .trend-panel-full,
@@ -872,7 +1044,17 @@ textarea:focus {
   }
 
   .metrics,
+  .status-grid,
   .settings-line {
+    grid-template-columns: 1fr;
+  }
+
+  .food-form {
+    grid-template-columns: 1fr;
+  }
+
+  .reward-inputs,
+  .redeem-form {
     grid-template-columns: 1fr;
   }
 

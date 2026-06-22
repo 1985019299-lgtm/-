@@ -41,6 +41,14 @@
             </button>
           </div>
 
+          <label class="privacy-row">
+            <span>隐私模式：隐藏体重数字</span>
+            <label class="switch">
+              <input id="privacyModeInput" type="checkbox" />
+              <span></span>
+            </label>
+          </label>
+
           <div class="metrics">
             <label>
               <span>体重 kg</span>
@@ -53,6 +61,39 @@
                 <option value="很有劲">很有劲</option>
                 <option value="有点累">有点累</option>
                 <option value="想休息">想休息</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="status-grid" aria-label="身体状态记录">
+            <label>
+              <span>身体状态</span>
+              <select id="bodyStatusInput">
+                <option value="轻盈">轻盈</option>
+                <option value="水肿">有点水肿</option>
+                <option value="酸痛">肌肉酸痛</option>
+                <option value="经期">经期中</option>
+                <option value="PMS">PMS</option>
+                <option value="想休息">想休息</option>
+              </select>
+            </label>
+            <label>
+              <span>睡眠</span>
+              <select id="sleepQualityInput">
+                <option value="不错">不错</option>
+                <option value="一般">一般</option>
+                <option value="没睡够">没睡够</option>
+                <option value="睡得很香">睡得很香</option>
+              </select>
+            </label>
+            <label>
+              <span>食欲</span>
+              <select id="appetiteInput">
+                <option value="正常">正常</option>
+                <option value="想吃甜">想吃甜</option>
+                <option value="想吃辣">想吃辣</option>
+                <option value="没胃口">没胃口</option>
+                <option value="很饿">很饿</option>
               </select>
             </label>
           </div>
@@ -76,6 +117,61 @@
             <span>今天想记一句</span>
             <textarea id="noteInput" rows="3" placeholder="比如：晚饭七分饱，散步二十分钟。"></textarea>
           </label>
+        </article>
+
+        <article class="panel reward-panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">奖励基金</p>
+              <h2><span id="rewardBalanceText">¥0</span></h2>
+            </div>
+            <div class="reward-badge" id="rewardTodayText">今日 +¥0</div>
+          </div>
+          <div class="reward-list" id="rewardList"></div>
+          <details class="reward-settings">
+            <summary>设置每项奖励金额</summary>
+            <div class="reward-inputs">
+              <label>
+                喝水达标
+                <input id="rewardWaterInput" type="number" min="0" max="99" step="0.5" />
+              </label>
+              <label>
+                运动完成
+                <input id="rewardExerciseInput" type="number" min="0" max="99" step="0.5" />
+              </label>
+              <label>
+                训练全完成
+                <input id="rewardTrainingInput" type="number" min="0" max="99" step="0.5" />
+              </label>
+              <label>
+                饮食日记
+                <input id="rewardDiaryInput" type="number" min="0" max="99" step="0.5" />
+              </label>
+            </div>
+          </details>
+          <form class="redeem-form" id="redeemForm">
+            <input id="redeemInput" type="number" min="0" step="0.5" placeholder="兑换金额" />
+            <button type="submit">兑换</button>
+          </form>
+          <div class="reward-meta" id="rewardMetaText"></div>
+          <p class="hint" id="kindSummaryText">完成小目标就给自己存一点奖励基金。</p>
+        </article>
+          </div>
+          <p class="hint" id="kindSummaryText">今天照顾自己一点点，就已经很棒。</p>
+        </article>
+
+        <article class="panel food-diary-panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">饮食日记</p>
+              <h2>记下来就好</h2>
+            </div>
+          </div>
+          <form class="food-form" id="foodDiaryForm">
+            <input id="foodDiaryInput" type="text" placeholder="比如：拿铁、鸡蛋三明治、火锅" required />
+            <button type="submit">添加</button>
+          </form>
+          <div class="food-list" id="foodDiaryList"></div>
         </article>
 
         <article class="panel water-panel">
@@ -284,6 +380,10 @@
             <label>
               <span>你想吃或家里有的食材</span>
               <textarea id="mealIngredientsInput" rows="4" placeholder="例如：鸡胸肉、鸡蛋、西兰花、燕麦、酸奶、苹果"></textarea>
+            </label>
+            <label>
+              <span>今天想吃什么</span>
+              <input id="mealCravingInput" type="text" placeholder="例如：想吃辣的、想吃甜的、想吃热乎的" />
             </label>
             <div class="settings-line">
               <label>

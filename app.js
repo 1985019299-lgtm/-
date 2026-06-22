@@ -1,5 +1,5 @@
 const todayKey = new Date().toISOString().slice(0, 10);
-const storeKey = "weight-checkin-site-v4";
+const storeKey = "weight-checkin-site-v6";
 
 const defaults = {
   settings: {
@@ -7,7 +7,15 @@ const defaults = {
     waterInterval: 60,
     exerciseTime: "19:30",
     exerciseGoal: 30,
-    trendRange: 30
+    trendRange: 30,
+    privacyMode: false,
+    rewardAmounts: {
+      water: 1,
+      exercise: 3,
+      training: 3,
+      diary: 1
+    },
+    redeemedTotal: 0
   },
   videos: [
     {
@@ -90,6 +98,7 @@ Object.assign(el, {
   weightEntryList: document.querySelector("#weightEntryList"),
   mealPlanForm: document.querySelector("#mealPlanForm"),
   mealIngredientsInput: document.querySelector("#mealIngredientsInput"),
+  mealCravingInput: document.querySelector("#mealCravingInput"),
   mealStyleInput: document.querySelector("#mealStyleInput"),
   mealCalorieInput: document.querySelector("#mealCalorieInput"),
   mealPlanOutput: document.querySelector("#mealPlanOutput"),
@@ -104,7 +113,25 @@ Object.assign(el, {
   trainingList: document.querySelector("#trainingList"),
   trainingCount: document.querySelector("#trainingCount"),
   trainingPercent: document.querySelector("#trainingPercent"),
-  trainingBar: document.querySelector("#trainingBar")
+  trainingBar: document.querySelector("#trainingBar"),
+  privacyModeInput: document.querySelector("#privacyModeInput"),
+  bodyStatusInput: document.querySelector("#bodyStatusInput"),
+  sleepQualityInput: document.querySelector("#sleepQualityInput"),
+  appetiteInput: document.querySelector("#appetiteInput"),
+  rewardBalanceText: document.querySelector("#rewardBalanceText"),
+  rewardTodayText: document.querySelector("#rewardTodayText"),
+  rewardList: document.querySelector("#rewardList"),
+  rewardWaterInput: document.querySelector("#rewardWaterInput"),
+  rewardExerciseInput: document.querySelector("#rewardExerciseInput"),
+  rewardTrainingInput: document.querySelector("#rewardTrainingInput"),
+  rewardDiaryInput: document.querySelector("#rewardDiaryInput"),
+  rewardMetaText: document.querySelector("#rewardMetaText"),
+  redeemForm: document.querySelector("#redeemForm"),
+  redeemInput: document.querySelector("#redeemInput"),
+  kindSummaryText: document.querySelector("#kindSummaryText"),
+  foodDiaryForm: document.querySelector("#foodDiaryForm"),
+  foodDiaryInput: document.querySelector("#foodDiaryInput"),
+  foodDiaryList: document.querySelector("#foodDiaryList")
 });
 
 function loadData() {
@@ -144,6 +171,10 @@ function getToday() {
       water: 0,
       exercise: 0,
       exerciseDone: false,
+      bodyStatus: "轻盈",
+      sleepQuality: "不错",
+      appetite: "正常",
+      foodDiary: [],
       mealChecks: {
         breakfast: false,
         lunch: false,
@@ -164,6 +195,12 @@ function getToday() {
   if (!data.days[todayKey].trainingDone) {
     data.days[todayKey].trainingDone = {};
   }
+  if (!Array.isArray(data.days[todayKey].foodDiary)) {
+    data.days[todayKey].foodDiary = [];
+  }
+  data.days[todayKey].bodyStatus ||= "轻盈";
+  data.days[todayKey].sleepQuality ||= "不错";
+  data.days[todayKey].appetite ||= "正常";
   return data.days[todayKey];
 }
 
@@ -188,6 +225,10 @@ function render() {
   el.waterIntervalInput.value = data.settings.waterInterval;
   el.exerciseMinutes.textContent = today.exercise;
   el.exerciseDoneInput.checked = today.exerciseDone;
+  el.bodyStatusInput.value = today.bodyStatus;
+  el.sleepQualityInput.value = today.sleepQuality;
+  el.appetiteInput.value = today.appetite;
+  el.privacyModeInput.checked = data.settings.privacyMode;
   el.exerciseTimeInput.value = data.settings.exerciseTime;
   el.exerciseGoalInput.value = data.settings.exerciseGoal;
   el.mealBreakfastCheck.checked = today.mealChecks.breakfast;
@@ -209,6 +250,8 @@ function render() {
   renderTrend();
   renderMealPlan();
   renderTrainings();
+  renderRewardFund();
+  renderFoodDiary();
 }
 
 function renderVideos() {
@@ -241,12 +284,12 @@ function renderHistory() {
     const label = new Intl.DateTimeFormat("zh-CN", { month: "numeric", day: "numeric", weekday: "short" }).format(date);
     const water = day.water || 0;
     const exercise = day.exercise || 0;
-    const weight = day.weight ? `${day.weight} kg` : "未记录体重";
+    const weight = day.weight ? formatWeight(day.weight) : "未记录体重";
 
     return `
       <div class="history-row">
         <strong>${label}</strong>
-        <span>${weight} · 喝水 ${water} 杯 · 运动 ${exercise} 分钟</span>
+        <span>${weight} · ${day.bodyStatus || "未记录状态"} · 喝水 ${water} 杯 · 运动 ${exercise} 分钟</span>
       </div>
     `;
   });
@@ -290,12 +333,12 @@ function renderTrend() {
   }
 
   el.weightEntryList.innerHTML = allWeights
-    .map(([date, day]) => {
-      const label = formatDate(date);
-      return `
-        <div class="weight-entry">
-          <div>
-            <strong>${Number(day.weight).toFixed(1)} kg</strong>
+      .map(([date, day]) => {
+        const label = formatDate(date);
+        return `
+          <div class="weight-entry">
+            <div>
+            <strong>${formatWeight(day.weight)}</strong>
             <span>${label}</span>
           </div>
         </div>
@@ -345,8 +388,9 @@ function buildWeightChart(points, min, max) {
 }
 
 function renderMealPlan() {
-  const plan = data.mealPlan || createMealPlan("", "清淡", "轻盈");
+  const plan = data.mealPlan || createMealPlan("", "", "清淡", "轻盈");
   el.mealIngredientsInput.value = plan.ingredients || "";
+  el.mealCravingInput.value = plan.craving || "";
   el.mealStyleInput.value = plan.style || "清淡";
   el.mealCalorieInput.value = plan.calorie || "轻盈";
   el.mealPlanOutput.innerHTML = plan.meals
@@ -358,6 +402,45 @@ function renderMealPlan() {
         </div>
       `
     )
+    .join("");
+}
+
+function renderRewardFund() {
+  const summary = getRewardSummary();
+  const amounts = data.settings.rewardAmounts;
+  el.rewardBalanceText.textContent = formatMoney(summary.balance);
+  el.rewardTodayText.textContent = `今日 +${formatMoney(summary.todayEarned)}`;
+  el.rewardWaterInput.value = amounts.water;
+  el.rewardExerciseInput.value = amounts.exercise;
+  el.rewardTrainingInput.value = amounts.training;
+  el.rewardDiaryInput.value = amounts.diary;
+  el.rewardMetaText.textContent = `累计获得 ${formatMoney(summary.totalEarned)}，已兑换 ${formatMoney(data.settings.redeemedTotal || 0)}。`;
+  el.rewardList.innerHTML = summary.todayItems
+    .map((item) => `
+      <div class="reward-item ${item.done ? "done" : ""}">
+        <span>${item.name}</span>
+        <strong>${item.done ? "+" : ""}${formatMoney(item.done ? item.amount : 0)}</strong>
+      </div>
+    `)
+    .join("");
+  el.kindSummaryText.textContent = summary.todayEarned > 0
+    ? `今天已经为自己存下 ${formatMoney(summary.todayEarned)}。`
+    : "完成一个小目标，就给奖励基金加一点。";
+}
+
+function renderFoodDiary() {
+  const today = getToday();
+  if (!today.foodDiary.length) {
+    el.foodDiaryList.innerHTML = '<p class="hint">不用算热量，先轻轻记一笔。</p>';
+    return;
+  }
+  el.foodDiaryList.innerHTML = today.foodDiary
+    .map((item) => `
+      <div class="food-item">
+        <span>${escapeHtml(item.text)}</span>
+        <button type="button" data-food-delete="${item.id}" title="删除">×</button>
+      </div>
+    `)
     .join("");
 }
 
@@ -421,6 +504,41 @@ function updateToday(patch) {
   render();
 }
 
+function formatWeight(weight) {
+  if (!weight) return "未记录体重";
+  return data.settings.privacyMode ? "已隐藏" : `${Number(weight).toFixed(1)} kg`;
+}
+
+function formatMoney(value) {
+  const number = Number(value) || 0;
+  return `¥${Number.isInteger(number) ? number : number.toFixed(1)}`;
+}
+
+function getRewardSummary() {
+  const amounts = data.settings.rewardAmounts || {};
+  const todayItems = getRewardItems(getToday(), amounts);
+  const totalEarned = Object.values(data.days).reduce((sum, day) => {
+    return sum + getRewardItems(day, amounts).reduce((inner, item) => inner + (item.done ? item.amount : 0), 0);
+  }, 0);
+  return {
+    todayItems,
+    todayEarned: todayItems.reduce((sum, item) => sum + (item.done ? item.amount : 0), 0),
+    totalEarned,
+    balance: Math.max(totalEarned - (Number(data.settings.redeemedTotal) || 0), 0)
+  };
+}
+
+function getRewardItems(day, amounts) {
+  const trainingTotal = data.trainings.length;
+  const trainingDone = trainingTotal > 0 && data.trainings.every((item) => day.trainingDone && day.trainingDone[item.id]);
+  return [
+    { key: "water", name: "喝水达标", done: (day.water || 0) >= data.settings.waterGoal, amount: Number(amounts.water) || 0 },
+    { key: "exercise", name: "运动完成", done: Boolean(day.exerciseDone), amount: Number(amounts.exercise) || 0 },
+    { key: "training", name: "训练全完成", done: trainingDone, amount: Number(amounts.training) || 0 },
+    { key: "diary", name: "饮食日记", done: Array.isArray(day.foodDiary) && day.foodDiary.length > 0, amount: Number(amounts.diary) || 0 }
+  ];
+}
+
 function updateMealChecks(patch) {
   const today = getToday();
   updateToday({ mealChecks: { ...today.mealChecks, ...patch } });
@@ -443,7 +561,7 @@ function formatDate(dateKey) {
   return new Intl.DateTimeFormat("zh-CN", { month: "numeric", day: "numeric", weekday: "short" }).format(new Date(year, month - 1, day));
 }
 
-function createMealPlan(rawIngredients, style, calorie) {
+function createMealPlan(rawIngredients, rawCraving, style, calorie) {
   const ingredients = rawIngredients
     .split(/[，,、\n]/)
     .map((item) => item.trim())
@@ -453,6 +571,8 @@ function createMealPlan(rawIngredients, style, calorie) {
   const vegetable = findFirst(picks, ["菜", "西兰花", "菠菜", "番茄", "黄瓜", "生菜", "蘑菇"]) || picks[1] || "青菜";
   const carb = findFirst(picks, ["米", "饭", "燕麦", "面", "土豆", "红薯", "玉米", "全麦"]) || "杂粮饭";
   const fruit = findFirst(picks, ["苹果", "香蕉", "莓", "橙", "梨", "桃"]) || "水果";
+  const craving = rawCraving.trim();
+  const cravingTip = buildCravingTip(craving);
   const portions = {
     "轻盈": "主食半拳，蛋白一掌，蔬菜两拳",
     "均衡": "主食一拳，蛋白一掌，蔬菜两拳",
@@ -467,16 +587,26 @@ function createMealPlan(rawIngredients, style, calorie) {
 
   return {
     ingredients: rawIngredients,
+    craving,
     style,
     calorie,
     meals: [
       { type: "早餐", time: "07:00-09:00", text: `${carb}配${protein}，加一份${fruit}。${prep[style]}，吃到七八分饱。` },
-      { type: "午餐", time: "11:30-13:30", text: `${protein}、${vegetable}和${carb}组合成一盘，按${portions[calorie]}来配。` },
+      { type: "午餐", time: "11:30-13:30", text: `${protein}、${vegetable}和${carb}组合成一盘，按${portions[calorie]}来配。${cravingTip}` },
       { type: "加餐", time: "15:00-17:00", text: `饿了选${fruit}或无糖酸奶，先喝水，十分钟后再决定要不要加。` },
       { type: "晚餐", time: "18:00-20:00", text: `${vegetable}加${protein}，主食比午餐少一点，睡前三小时尽量不再加餐。` },
       { type: "小提醒", time: "全天", text: "这是生活记录工具，不替代医生或营养师建议；如果你有基础病、孕期或饮食禁忌，要按专业建议调整。" }
     ]
   };
+}
+
+function buildCravingTip(craving) {
+  if (!craving) return "";
+  if (craving.includes("甜")) return " 想吃甜的可以放到加餐里，选水果、酸奶或小份甜品，别空腹硬忍。";
+  if (craving.includes("辣")) return " 想吃辣的可以用少油的辣味做法，搭配足量蔬菜和蛋白。";
+  if (craving.includes("热") || craving.includes("汤")) return " 想吃热乎的可以做汤面、炖菜或热粥，注意蛋白质别少。";
+  if (craving.includes("没胃口")) return " 没胃口时先选温热、清淡、好消化的食物，少量多次也可以。";
+  return ` 今天想吃“${craving}”，可以留一个小份位置，别把喜欢吃的东西变成压力。`;
 }
 
 function findFirst(items, keywords) {
@@ -527,6 +657,14 @@ function bindEvents() {
   el.snackCheck.addEventListener("change", () => updateToday({ snack: el.snackCheck.checked }));
   el.sleepCheck.addEventListener("change", () => updateToday({ sleep: el.sleepCheck.checked }));
   el.noteInput.addEventListener("input", () => updateToday({ note: el.noteInput.value }));
+  el.bodyStatusInput.addEventListener("change", () => updateToday({ bodyStatus: el.bodyStatusInput.value }));
+  el.sleepQualityInput.addEventListener("change", () => updateToday({ sleepQuality: el.sleepQualityInput.value }));
+  el.appetiteInput.addEventListener("change", () => updateToday({ appetite: el.appetiteInput.value }));
+  el.privacyModeInput.addEventListener("change", () => {
+    data.settings.privacyMode = el.privacyModeInput.checked;
+    saveData();
+    render();
+  });
 
   el.addWaterBtn.addEventListener("click", () => {
     const water = Math.min(getToday().water + 1, 99);
@@ -597,6 +735,10 @@ function bindEvents() {
       water: 0,
       exercise: 0,
       exerciseDone: false,
+      bodyStatus: "轻盈",
+      sleepQuality: "不错",
+      appetite: "正常",
+      foodDiary: [],
       mealChecks: {
         breakfast: false,
         lunch: false,
@@ -670,7 +812,7 @@ function bindEvents() {
 
   el.mealPlanForm.addEventListener("submit", (event) => {
     event.preventDefault();
-    data.mealPlan = createMealPlan(el.mealIngredientsInput.value.trim(), el.mealStyleInput.value, el.mealCalorieInput.value);
+    data.mealPlan = createMealPlan(el.mealIngredientsInput.value.trim(), el.mealCravingInput.value.trim(), el.mealStyleInput.value, el.mealCalorieInput.value);
     saveData();
     renderMealPlan();
     showToast("今日食谱已生成。");
@@ -712,6 +854,50 @@ function bindEvents() {
     saveData();
     renderTrainings();
     showToast("训练已删除。");
+  });
+
+  [
+    ["water", el.rewardWaterInput],
+    ["exercise", el.rewardExerciseInput],
+    ["training", el.rewardTrainingInput],
+    ["diary", el.rewardDiaryInput]
+  ].forEach(([key, input]) => {
+    input.addEventListener("change", () => {
+      data.settings.rewardAmounts[key] = clampNumber(input.value, 0, 99, data.settings.rewardAmounts[key]);
+      saveData();
+      renderRewardFund();
+    });
+  });
+
+  el.redeemForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const value = clampNumber(el.redeemInput.value, 0, 9999, 0);
+    if (!value) return;
+    data.settings.redeemedTotal = (Number(data.settings.redeemedTotal) || 0) + value;
+    el.redeemForm.reset();
+    saveData();
+    renderRewardFund();
+    showToast("奖励基金已兑换。");
+  });
+
+  el.foodDiaryForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const today = getToday();
+    updateToday({
+      foodDiary: [
+        ...today.foodDiary,
+        { id: createId(), text: el.foodDiaryInput.value.trim() }
+      ]
+    });
+    el.foodDiaryForm.reset();
+    showToast("饮食日记已添加。");
+  });
+
+  el.foodDiaryList.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-food-delete]");
+    if (!button) return;
+    const today = getToday();
+    updateToday({ foodDiary: today.foodDiary.filter((item) => item.id !== button.dataset.foodDelete) });
   });
 }
 
