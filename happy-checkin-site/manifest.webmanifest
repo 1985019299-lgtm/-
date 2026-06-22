@@ -1,0 +1,22 @@
+{
+  "name": "快乐打卡",
+  "short_name": "快乐",
+  "description": "减肥打卡、喝水提醒、训练计划、体重趋势和食谱规划。",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4f9ff",
+  "theme_color": "#f4f9ff",
+  "icons": [
+    {
+      "src": "./icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
