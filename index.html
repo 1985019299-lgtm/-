@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>快乐打卡</title>
+    <meta name="theme-color" content="#f4f9ff" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="快乐打卡" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="./icon-192.png" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="topbar" aria-label="今日概览">
+        <div>
+          <p class="eyebrow">今天也慢慢来</p>
+          <h1>快乐打卡</h1>
+        </div>
+        <div class="date-pill" id="todayText"></div>
+      </section>
+
+      <nav class="tabbar" aria-label="页面导航">
+        <button class="tab-button active" type="button" data-page-target="home">今日</button>
+        <button class="tab-button" type="button" data-page-target="training">训练</button>
+        <button class="tab-button" type="button" data-page-target="trend">趋势</button>
+        <button class="tab-button" type="button" data-page-target="meal">食谱</button>
+      </nav>
+
+      <section class="dashboard-grid page-view active" data-page="home">
+        <article class="panel checkin-panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">今日记录</p>
+              <h2>打卡</h2>
+            </div>
+            <button class="icon-button" id="resetTodayBtn" type="button" title="清空今天">
+              <span aria-hidden="true">↺</span>
+            </button>
+          </div>
+
+          <div class="metrics">
+            <label>
+              <span>体重 kg</span>
+              <input id="weightInput" type="number" inputmode="decimal" min="20" max="300" step="0.1" placeholder="例如 62.5" />
+            </label>
+            <label>
+              <span>心情</span>
+              <select id="moodInput">
+                <option value="稳稳的">稳稳的</option>
+                <option value="很有劲">很有劲</option>
+                <option value="有点累">有点累</option>
+                <option value="想休息">想休息</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="habit-list">
+            <label class="habit-row">
+              <input id="breakfastCheck" type="checkbox" />
+              <span>早餐吃好了</span>
+            </label>
+            <label class="habit-row">
+              <input id="snackCheck" type="checkbox" />
+              <span>没有乱吃零食</span>
+            </label>
+            <label class="habit-row">
+              <input id="sleepCheck" type="checkbox" />
+              <span>今晚早点睡</span>
+            </label>
+          </div>
+
+          <label class="note-box">
+            <span>今天想记一句</span>
+            <textarea id="noteInput" rows="3" placeholder="比如：晚饭七分饱，散步二十分钟。"></textarea>
+          </label>
+        </article>
+
+        <article class="panel water-panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">喝水</p>
+              <h2><span id="waterCount">0</span>/<span id="waterGoalText">8</span> 杯</h2>
+            </div>
+            <button class="icon-button" id="waterMinusBtn" type="button" title="减少一杯">−</button>
+          </div>
+          <div class="water-ring" aria-label="喝水进度">
+            <svg viewBox="0 0 120 120" role="img">
+              <circle class="ring-bg" cx="60" cy="60" r="50"></circle>
+              <circle class="ring-progress" id="waterRing" cx="60" cy="60" r="50"></circle>
+            </svg>
+            <button id="addWaterBtn" class="water-add" type="button">+1 杯</button>
+          </div>
+          <div class="settings-line">
+            <label>
+              目标
+              <input id="waterGoalInput" type="number" min="1" max="20" step="1" />
+            </label>
+            <label>
+              间隔
+              <select id="waterIntervalInput">
+                <option value="30">30 分钟</option>
+                <option value="45">45 分钟</option>
+                <option value="60">60 分钟</option>
+                <option value="90">90 分钟</option>
+                <option value="120">120 分钟</option>
+              </select>
+            </label>
+          </div>
+          <p class="hint" id="waterReminderText">打开页面后会按间隔提醒你喝水。</p>
+        </article>
+
+        <article class="panel exercise-panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">运动</p>
+              <h2><span id="exerciseMinutes">0</span> 分钟</h2>
+            </div>
+            <label class="switch">
+              <input id="exerciseDoneInput" type="checkbox" />
+              <span></span>
+            </label>
+          </div>
+          <div class="quick-minutes">
+            <button type="button" data-minutes="10">+10</button>
+            <button type="button" data-minutes="20">+20</button>
+            <button type="button" data-minutes="30">+30</button>
+          </div>
+          <div class="settings-line">
+            <label>
+              提醒时间
+              <input id="exerciseTimeInput" type="time" />
+            </label>
+            <label>
+              目标
+              <input id="exerciseGoalInput" type="number" min="5" max="300" step="5" />
+            </label>
+          </div>
+          <div class="progress-bar" aria-label="运动进度">
+            <span id="exerciseBar"></span>
+          </div>
+          <p class="hint" id="exerciseReminderText">到点后页面会提醒你运动。</p>
+        </article>
+
+        <article class="panel video-panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">常看视频</p>
+              <h2>运动库</h2>
+            </div>
+          </div>
+          <form class="video-form" id="videoForm">
+            <input id="videoNameInput" type="text" placeholder="视频名称" required />
+            <input id="videoUrlInput" type="url" placeholder="https://..." required />
+            <select id="videoTypeInput">
+              <option value="燃脂">燃脂</option>
+              <option value="拉伸">拉伸</option>
+              <option value="力量">力量</option>
+              <option value="瑜伽">瑜伽</option>
+            </select>
+            <button type="submit">添加</button>
+          </form>
+          <div class="video-list" id="videoList"></div>
+        </article>
+
+        <article class="panel history-panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">最近 7 天</p>
+              <h2>趋势</h2>
+            </div>
+            <button class="text-button" type="button" data-page-target="trend">看更多</button>
+          </div>
+          <div class="history-list" id="historyList"></div>
+        </article>
+
+        <article class="panel notice-panel">
+          <div>
+            <p class="eyebrow">提醒权限</p>
+            <h2>让浏览器叫你一声</h2>
+            <p>页面打开时一定会提醒；允许通知后，切到别的窗口也更容易看到。</p>
+          </div>
+          <button id="notifyBtn" type="button">开启通知</button>
+        </article>
+      </section>
+
+      <section class="page-view training-page" data-page="training">
+        <article class="panel training-main-panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">训练计划</p>
+              <h2>做完就勾掉</h2>
+            </div>
+            <div class="training-count" id="trainingCount">0/0</div>
+          </div>
+          <form class="training-form" id="trainingForm">
+            <input id="trainingNameInput" type="text" placeholder="训练名称，比如：深蹲" required />
+            <div class="settings-line">
+              <input id="trainingDetailInput" type="text" placeholder="组数/时长，比如：3组 × 15次" />
+              <select id="trainingTypeInput">
+                <option value="力量">力量</option>
+                <option value="有氧">有氧</option>
+                <option value="拉伸">拉伸</option>
+                <option value="核心">核心</option>
+              </select>
+            </div>
+            <button type="submit">添加训练</button>
+          </form>
+          <div class="training-list" id="trainingList"></div>
+        </article>
+
+        <article class="panel training-summary-panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">今日完成</p>
+              <h2 id="trainingPercent">0%</h2>
+            </div>
+          </div>
+          <div class="progress-bar training-progress" aria-label="训练完成进度">
+            <span id="trainingBar"></span>
+          </div>
+          <p class="hint">训练计划由你自己添加，完成后点前面的圆形标记即可。</p>
+        </article>
+      </section>
+
+      <section class="page-view" data-page="trend">
+        <article class="panel trend-panel-full">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">体重趋势</p>
+              <h2>看见之前很多天的变化</h2>
+            </div>
+            <select id="trendRangeInput" aria-label="趋势范围">
+              <option value="14">14 天</option>
+              <option value="30" selected>30 天</option>
+              <option value="60">60 天</option>
+              <option value="90">90 天</option>
+              <option value="365">一年</option>
+            </select>
+          </div>
+          <div class="trend-stats" id="trendStats"></div>
+          <div class="chart-wrap">
+            <svg id="weightChart" viewBox="0 0 720 280" role="img" aria-label="体重趋势折线图"></svg>
+          </div>
+        </article>
+
+        <article class="panel manual-panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">补录</p>
+              <h2>以前的体重</h2>
+            </div>
+          </div>
+          <form class="manual-form" id="manualWeightForm">
+            <input id="manualDateInput" type="date" required />
+            <input id="manualWeightInput" type="number" inputmode="decimal" min="20" max="300" step="0.1" placeholder="体重 kg" required />
+            <button type="submit">保存</button>
+          </form>
+          <p class="hint">可以补录过去很多天，趋势图会自动更新。</p>
+        </article>
+
+        <article class="panel entries-panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">记录明细</p>
+              <h2>所有体重</h2>
+            </div>
+          </div>
+          <div class="weight-entry-list" id="weightEntryList"></div>
+        </article>
+      </section>
+
+      <section class="page-view meal-page" data-page="meal">
+        <article class="panel meal-builder-panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">食谱推荐</p>
+              <h2>输入食材，自动规划一天</h2>
+            </div>
+          </div>
+          <form class="meal-form" id="mealPlanForm">
+            <label>
+              <span>你想吃或家里有的食材</span>
+              <textarea id="mealIngredientsInput" rows="4" placeholder="例如：鸡胸肉、鸡蛋、西兰花、燕麦、酸奶、苹果"></textarea>
+            </label>
+            <div class="settings-line">
+              <label>
+                口味
+                <select id="mealStyleInput">
+                  <option value="清淡">清淡</option>
+                  <option value="中式">中式</option>
+                  <option value="高蛋白">高蛋白</option>
+                  <option value="省事">省事</option>
+                </select>
+              </label>
+              <label>
+                热量
+                <select id="mealCalorieInput">
+                  <option value="轻盈">轻盈</option>
+                  <option value="均衡">均衡</option>
+                  <option value="运动日">运动日</option>
+                </select>
+              </label>
+            </div>
+            <button type="submit">生成今日食谱</button>
+          </form>
+        </article>
+
+        <article class="panel meal-result-panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">今天吃什么</p>
+              <h2>一日安排</h2>
+            </div>
+          </div>
+          <div class="meal-plan" id="mealPlanOutput"></div>
+        </article>
+
+        <article class="panel meal-check-panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">吃饭打卡</p>
+              <h2>按餐完成</h2>
+            </div>
+          </div>
+          <div class="habit-list">
+            <label class="habit-row">
+              <input id="mealBreakfastCheck" type="checkbox" />
+              <span>早餐完成</span>
+            </label>
+            <label class="habit-row">
+              <input id="mealLunchCheck" type="checkbox" />
+              <span>午餐完成</span>
+            </label>
+            <label class="habit-row">
+              <input id="mealDinnerCheck" type="checkbox" />
+              <span>晚餐完成</span>
+            </label>
+            <label class="habit-row">
+              <input id="mealSnackCheck" type="checkbox" />
+              <span>加餐完成</span>
+            </label>
+          </div>
+        </article>
+      </section>
+    </main>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script src="./app.js"></script>
+    <script>
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("./sw.js");
+      }
+    </script>
+  </body>
+</html>
